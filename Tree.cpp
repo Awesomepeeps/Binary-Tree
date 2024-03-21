@@ -122,7 +122,7 @@ int main() {
 
         if (input == "add") {
             string terfl;
-            cout << "Enter terfl (terminal or file): ";
+            cout << "Terminal or file?";
             cin >> terfl;
             if (terfl == "terminal") {
                 int num;
