@@ -145,6 +145,7 @@ int main() {
                 else {
                     cout << "No file exists" << endl;
                 }
+            }
         }
         else if (input == "remove") {
             int num;
@@ -162,7 +163,8 @@ int main() {
             cin >> num;
             if (bst.search(num)) {
                 cout << num << " is found in the tree." << endl;
-            } else {
+            } 
+            else {
                 cout << num << " is not found in the tree." << endl;
             }        
         }
