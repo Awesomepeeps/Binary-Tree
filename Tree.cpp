@@ -1,4 +1,7 @@
 #include <iostream>
+#include <string>
+#include <fstream>
+
 using namespace std;
 
 struct treeNode {
@@ -111,25 +114,60 @@ public:
 
 int main() {
     binaryTree bst;
+    string input;
 
-    bst.insert(50);
-    bst.insert(30);
-    bst.insert(70);
-    bst.insert(20);
-    bst.insert(40);
+    while (true) {
+        cout << "Do you want to add, remove, print, search, or quit?" << endl;
+        cin >> input;
 
-    cout << "binaryTree after initial insertion:" << endl;
-    bst.print();
-    cout << endl;
-
-    bst.remove(30);
-
-    cout << "binaryTree after removing 30:" << endl;
-    bst.print();
-    cout << endl;
-
-    int num = 40;
-    cout << num << " is " << (bst.search(num) ? "found" : "not found") << " in the binaryTree." << endl;
-
-    return 0;
+        if (input == "add") {
+            string terfl;
+            cout << "Enter terfl (terminal or file): ";
+            cin >> terfl;
+            if (terfl == "terminal") {
+                int num;
+                cout << "Enter number to add: ";
+                cin >> num;
+                bst.insert(num);
+            }
+            else if (terfl == "file") {
+                string filename;
+                cout << "Enter filename: ";
+                cin >> filename;
+                ifstream inputFile(filename);
+                if (inputFile.is_open()) {
+                    int num;
+                    while (inputFile >> num) {
+                        bst.insert(num);
+                    }
+                    inputFile.close();
+                }
+                else {
+                    cout << "No file exists" << endl;
+                }
+        }
+        else if (input == "remove") {
+            int num;
+            cout << "Enter number to remove: ";
+            cin >> num;
+            bst.remove(num);
+        }
+        else if (input == "print") {
+            cout << "Binary Search Tree:" << endl;
+            bst.print();
+        }
+        else if (input == "search") {
+            int num;
+            cout << "Enter number to search: ";
+            cin >> num;
+            if (bst.search(num)) {
+                cout << num << " is found in the tree." << endl;
+            } else {
+                cout << num << " is not found in the tree." << endl;
+            }        
+        }
+        else if (input == "quit") {
+            break;
+        }
+    }
 }
