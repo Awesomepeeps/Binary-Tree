@@ -11,7 +11,7 @@ struct treeNode {
     treeNode(int data) : data(data), left(nullptr), right(nullptr) {}
 };
 
-class binaryTree {
+class binaryTree { // idea of implementation came from geekforgeek
 private:
     treeNode* root;
 
