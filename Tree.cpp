@@ -4,116 +4,272 @@
 
 using namespace std;
 
+enum Color { RED, BLACK };
+
 struct treeNode {
     int data;
     treeNode* left;
     treeNode* right;
-    treeNode(int data) : data(data), left(nullptr), right(nullptr) {}
+    treeNode* parent;
+    Color color;
+    treeNode(int data) : data(data), left(nullptr), right(nullptr), parent(nullptr), color(RED) {}
 };
 
-class binaryTree { // idea of implementation came from geekforgeek
+class RedBlackTree {
 private:
     treeNode* root;
 
-    treeNode* insert(treeNode* node, int data) {
-        if (node == nullptr) {
-            return new treeNode(data);
-        }
-
-        if (data < node->data) {
-            node->left = insert(node->left, data);
-        } else if (data > node->data) {
-            node->right = insert(node->right, data);
-        }
-
-        return node;
+    void leftRotate(treeNode* x) {
+        treeNode* y = x->right;
+        x->right = y->left;
+        if (y->left != nullptr)
+            y->left->parent = x;
+        y->parent = x->parent;
+        if (x->parent == nullptr)
+            root = y;
+        else if (x == x->parent->left)
+            x->parent->left = y;
+        else
+            x->parent->right = y;
+        y->left = x;
+        x->parent = y;
     }
 
-    treeNode* findMin(treeNode* node) {
-        while (node->left != nullptr) {
-            node = node->left;
-        }
-        return node;
+    void rightRotate(treeNode* y) {
+        treeNode* x = y->left;
+        y->left = x->right;
+        if (x->right != nullptr)
+            x->right->parent = y;
+        x->parent = y->parent;
+        if (y->parent == nullptr)
+            root = x;
+        else if (y == y->parent->left)
+            y->parent->left = x;
+        else
+            y->parent->right = x;
+        x->right = y;
+        y->parent = x;
     }
 
-    treeNode* remove(treeNode* node, int data) {
-        if (node == nullptr) {
-            return nullptr;
-        }
-
-        if (data < node->data) {
-            node->left = remove(node->left, data);
-        } else if (data > node->data) {
-            node->right = remove(node->right, data);
-        } else {
-            if (node->left == nullptr && node->right == nullptr) {
-                delete node;
-                return nullptr;
-            } else if (node->left == nullptr) {
-                treeNode* temp = node->right;
-                delete node;
-                return temp;
-            } else if (node->right == nullptr) {
-                treeNode* temp = node->left;
-                delete node;
-                return temp;
+    void fixInsertion(treeNode* z) {
+        while (z != root && z->parent->color == RED) {
+            if (z->parent == z->parent->parent->left) {
+                treeNode* y = z->parent->parent->right;
+                if (y != nullptr && y->color == RED) {
+                    z->parent->color = BLACK;
+                    y->color = BLACK;
+                    z->parent->parent->color = RED;
+                    z = z->parent->parent;
+                } else {
+                    if (z == z->parent->right) {
+                        z = z->parent;
+                        leftRotate(z);
+                    }
+                    z->parent->color = BLACK;
+                    z->parent->parent->color = RED;
+                    rightRotate(z->parent->parent);
+                }
             } else {
-                treeNode* successor = findMin(node->right);
-                node->data = successor->data;
-                node->right = remove(node->right, successor->data);
+                treeNode* y = z->parent->parent->left;
+                if (y != nullptr && y->color == RED) {
+                    z->parent->color = BLACK;
+                    y->color = BLACK;
+                    z->parent->parent->color = RED;
+                    z = z->parent->parent;
+                } else {
+                    if (z == z->parent->left) {
+                        z = z->parent;
+                        rightRotate(z);
+                    }
+                    z->parent->color = BLACK;
+                    z->parent->parent->color = RED;
+                    leftRotate(z->parent->parent);
+                }
             }
         }
-        return node;
+        root->color = BLACK;
     }
 
-    bool search(treeNode* node, int data) {
-        if (node == nullptr) {
-            return false;
-        }
-        if (data == node->data) {
-            return true;
-        }
-        if (data < node->data) {
-            return search(node->left, data);
-        } else {
-            return search(node->right, data);
-        }
+    void transplant(treeNode* u, treeNode* v) {
+        if (u->parent == nullptr)
+            root = v;
+        else if (u == u->parent->left)
+            u->parent->left = v;
+        else
+            u->parent->right = v;
+        if (v != nullptr)
+            v->parent = u->parent;
     }
 
-    void print(treeNode* node, int depth) {
-        if (node == nullptr) {
-            return;
+    treeNode* minValueNode(treeNode* node) {
+        treeNode* current = node;
+        while (current->left != nullptr)
+            current = current->left;
+        return current;
+    }
+
+    void fixDeletion(treeNode* x) {
+        while (x != root && x->color == BLACK) {
+            if (x == x->parent->left) {
+                treeNode* w = x->parent->right;
+                if (w->color == RED) {
+                    w->color = BLACK;
+                    x->parent->color = RED;
+                    leftRotate(x->parent);
+                    w = x->parent->right;
+                }
+                if (w->left->color == BLACK && w->right->color == BLACK) {
+                    w->color = RED;
+                    x = x->parent;
+                } else {
+                    if (w->right->color == BLACK) {
+                        w->left->color = BLACK;
+                        w->color = RED;
+                        rightRotate(w);
+                        w = x->parent->right;
+                    }
+                    w->color = x->parent->color;
+                    x->parent->color = BLACK;
+                    w->right->color = BLACK;
+                    leftRotate(x->parent);
+                    x = root;
+                }
+            } else {
+                treeNode* w = x->parent->left;
+                if (w->color == RED) {
+                    w->color = BLACK;
+                    x->parent->color = RED;
+                    rightRotate(x->parent);
+                    w = x->parent->left;
+                }
+                if (w->right->color == BLACK && w->left->color == BLACK) {
+                    w->color = RED;
+                    x = x->parent;
+                } else {
+                    if (w->left->color == BLACK) {
+                        w->right->color = BLACK;
+                        w->color = RED;
+                        leftRotate(w);
+                        w = x->parent->left;
+                    }
+                    w->color = x->parent->color;
+                    x->parent->color = BLACK;
+                    w->left->color = BLACK;
+                    rightRotate(x->parent);
+                    x = root;
+                }
+            }
         }
-        print(node->right, depth + 1);
-        for (int i = 0; i < depth; ++i) {
-            cout << "   ";
+        x->color = BLACK;
+    }
+
+    void inorderHelper(treeNode* root, int level) {
+        if (root != nullptr) {
+            inorderHelper(root->right, level + 1);
+            for (int i = 0; i < level; i++)
+                cout << "   ";
+            cout << root->data;
+            if (root->color == RED)
+                cout << " (Red)" << endl;
+            else
+                cout << " (Black)" << endl;
+            inorderHelper(root->left, level + 1);
         }
-        cout << node->data << endl;
-        print(node->left, depth + 1);
     }
 
 public:
-    binaryTree() : root(nullptr) {}
+    RedBlackTree() : root(nullptr) {}
 
     void insert(int data) {
-        root = insert(root, data);
+        treeNode* z = new treeNode(data);
+        treeNode* y = nullptr;
+        treeNode* x = root;
+
+        while (x != nullptr) {
+            y = x;
+            if (z->data < x->data)
+                x = x->left;
+            else
+                x = x->right;
+        }
+        z->parent = y;
+        if (y == nullptr)
+            root = z;
+        else if (z->data < y->data)
+            y->left = z;
+        else
+            y->right = z;
+        z->left = nullptr;
+        z->right = nullptr;
+        z->color = RED;
+        fixInsertion(z);
     }
 
     void remove(int data) {
-        root = remove(root, data);
+        treeNode* z = root;
+        treeNode* x, *y;
+        while (z != nullptr) {
+            if (z->data == data)
+                break;
+            if (z->data < data)
+                z = z->right;
+            else
+                z = z->left;
+        }
+        if (z == nullptr) {
+            cout << "Couldn't find key in the tree\n";
+            return;
+        }
+        y = z;
+        Color y_original_color = y->color;
+        if (z->left == nullptr) {
+            x = z->right;
+            transplant(z, z->right);
+        } else if (z->right == nullptr) {
+            x = z->left;
+            transplant(z, z->left);
+        } else {
+            y = minValueNode(z->right);
+            y_original_color = y->color;
+            x = y->right;
+            if (y->parent == z)
+                x->parent = y;
+            else {
+                transplant(y, y->right);
+                y->right = z->right;
+                y->right->parent = y;
+            }
+            transplant(z, y);
+            y->left = z->left;
+            y->left->parent = y;
+            y->color = z->color;
+        }
+        if (y_original_color == BLACK)
+            fixDeletion(x);
+        delete z;
     }
 
-    bool search(int data) {
-        return search(root, data);
+    void search(int data) {
+        treeNode* node = root;
+        while (node != nullptr) {
+            if (data == node->data) {
+                cout << "Found: " << data << endl;
+                return;
+            } else if (data < node->data)
+                node = node->left;
+            else
+                node = node->right;
+        }
+        cout << "Not Found: " << data << endl;
     }
 
-    void print() {
-        print(root, 0);
+    void inorder() {
+        inorderHelper(root, 0);
     }
 };
 
 int main() {
-    binaryTree bst;
+    RedBlackTree rbt;
     string input;
 
     while (true) {
@@ -121,55 +277,28 @@ int main() {
         cin >> input;
 
         if (input == "add") {
-            string terfl;
-            cout << "Terminal or file?";
-            cin >> terfl;
-            if (terfl == "terminal") {
-                int num;
-                cout << "Enter number to add: ";
-                cin >> num;
-                bst.insert(num);
-            }
-            else if (terfl == "file") {
-                string filename;
-                cout << "Enter filename: ";
-                cin >> filename;
-                ifstream inputFile(filename);
-                if (inputFile.is_open()) {
-                    int num;
-                    while (inputFile >> num) {
-                        bst.insert(num);
-                    }
-                    inputFile.close();
-                }
-                else {
-                    cout << "No file exists" << endl;
-                }
-            }
-        }
-        else if (input == "remove") {
+            int num;
+            cout << "Enter number to add: ";
+            cin >> num;
+            rbt.insert(num);
+        } else if (input == "remove") {
             int num;
             cout << "Enter number to remove: ";
             cin >> num;
-            bst.remove(num);
-        }
-        else if (input == "print") {
-            cout << "Binary Search Tree:" << endl;
-            bst.print();
-        }
-        else if (input == "search") {
+            rbt.remove(num);
+        } else if (input == "print") {
+            cout << "Inorder Traversal:" << endl;
+            rbt.inorder();
+            cout << endl;
+        } else if (input == "search") {
             int num;
             cout << "Enter number to search: ";
             cin >> num;
-            if (bst.search(num)) {
-                cout << num << " is found in the tree." << endl;
-            } 
-            else {
-                cout << num << " is not found in the tree." << endl;
-            }        
-        }
-        else if (input == "quit") {
+            rbt.search(num);
+        } else if (input == "quit") {
             break;
         }
     }
+
+    return 0;
 }
