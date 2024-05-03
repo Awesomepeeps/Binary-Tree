@@ -266,6 +266,20 @@ public:
     void inorder() {
         inorderHelper(root, 0);
     }
+
+    void readFromFile(const string& filename) {
+        ifstream inputFile(filename);
+        if (inputFile.is_open()) {
+            int num;
+            while (inputFile >> num) {
+                insert(num);
+            }
+            inputFile.close();
+        } else {
+            cout << "Unable to open file: " << filename << endl;
+        }
+    }
+
 };
 
 int main() {
@@ -273,7 +287,7 @@ int main() {
     string input;
 
     while (true) {
-        cout << "Do you want to add, remove, print, search, or quit?" << endl;
+        cout << "Do you want to add, remove, print, search, read, or quit?" << endl;
         cin >> input;
 
         if (input == "add") {
@@ -295,6 +309,11 @@ int main() {
             cout << "Enter number to search: ";
             cin >> num;
             rbt.search(num);
+        } else if (input == "read") {
+            string filename;
+            cout << "Enter filename: ";
+            cin >> filename;
+            rbt.readFromFile(filename);
         } else if (input == "quit") {
             break;
         }
